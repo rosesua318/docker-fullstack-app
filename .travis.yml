@@ -1,0 +1,23 @@
+language: generic
+
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker build -t rosesua/react-test-app -f ./frontend/Dockerfile.dev ./frontend
+
+script:
+  - docker run -e CI=true rosesua/react-test-app npm run test
+
+after_success:
+  - docker build -t rosesua/docker-frontend ./frontend
+  - docker build -t rosesua/docker-backend ./backend
+  - docker build -t rosesua/docker-nginx ./nginx
+
+  - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_ID" --password-stdin
+
+  - docker push rosesua/docker-frontend
+  - docker push rosesua/docker-backend
+  - docker push rosesua/docker-nginx
